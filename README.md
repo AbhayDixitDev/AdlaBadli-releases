@@ -41,7 +41,7 @@ Open the [latest release](../../releases/latest) and download the file for your 
 
 | Connection lost? It reconnects | Finished, with speed and time | Update in the app |
 |---|---|---|
-| <img src="screenshots/reconnecting.jpg" width="240"> | <img src="screenshots/finished.jpg" width="240"> | Coming with the next screenshot update |
+| <img src="screenshots/reconnecting.jpg" width="240"> | <img src="screenshots/finished.jpg" width="240"> | <img src="screenshots/update.jpg" width="240"> |
 
 ## How to use
 
