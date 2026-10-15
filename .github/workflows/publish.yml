@@ -1,0 +1,58 @@
+name: Publish release
+
+# Publishes the APKs in upload/ as a GitHub release. The app looks for new
+# versions among these releases.
+#
+# To release: put AdlaBadli-<version>-arm64.apk, -arm32.apk and -x86_64.apk
+# and NOTES.md (what changed, shown in the app) into upload/ and push. The
+# release is created for the version in the file names, and upload/ is
+# emptied again so the APKs do not stay in the branch.
+
+on:
+  push:
+    paths:
+      - 'upload/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read the version
+        id: version
+        run: |
+          APK=$(ls upload/AdlaBadli-*-arm64.apk | head -1)
+          if [ -z "$APK" ]; then
+            echo "No APK in upload/, nothing to publish"
+            exit 0
+          fi
+          VERSION=$(basename "$APK" | sed -E 's/^AdlaBadli-(.+)-arm64\.apk$/\1/')
+          echo "Publishing $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Create the release
+        if: steps.version.outputs.version != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release create "v$VERSION" upload/AdlaBadli-"$VERSION"-*.apk \
+            --repo "$GITHUB_REPOSITORY" \
+            --target main \
+            --title "AdlaBadli $VERSION" \
+            --notes-file upload/NOTES.md \
+            --latest
+
+      - name: Empty upload/
+        if: steps.version.outputs.version != ''
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -q upload/*.apk
+          git commit -m "Published AdlaBadli ${{ steps.version.outputs.version }}"
+          git push
